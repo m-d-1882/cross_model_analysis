@@ -398,7 +398,7 @@ For higher $\numOutputs$, this requires the specification of a $\numOutputs \tim
 In the case of correlated errors however, this requires the specification of the full $\numOutputs \times \numOutputs$ matrix for both observation error and model discrepancy which leads to obvious elicitation difficulties.
 \subsection{History matching using singular vectors}
 \label{hm-singVec}
-Replace step 2 of history matching algorithm with the following sub-steps:
+To incorporate the use of singular vectors in the emulation process, replace step 2 of history matching algorithm with the following sub-steps:
 \begin{enumerate}
     \item[a] Take the design output $\outputMat$ ($\numDPs \times \numOutputs$) from the design $\design_j$, centre (to 0) and scale (to variance 1) and apply the singular value decomposition.
 
