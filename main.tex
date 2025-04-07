@@ -184,11 +184,11 @@ This allows for the emulator $\emulator$ to take the following form:
 where
 \begin{align}
     & m^*(\inputVec) = \basisFuncs^T(\inputVec) \basisCoeffs + \mathbf{t(\inputVec)^T} \corrMatrix^{-1} (\mathbf{\designOutput} - H\mathbf{\basisCoeffs}), \label{eq:post1-mean} \\
-    & \cov^*(.,.) = \var \corr^*(.,.),\\
+    & \cov^*(.,.) = \var \corr^*(.,.),\nonumber \\
     & \corr^*(\inputVec,\inputVec') = \corr(\inputVec,\inputVec') - \mathbf{t(\inputVec)} \corrMatrix^{-1} \mathbf{t(\inputVec')}, \label{eq:post1-cov}\\
-    & H^T = (\basisFuncs(\inputVec_1),\dots,\basisFuncs(\inputVec_\numDPs)),\\
-    & \mathbf{t(\inputVec)}^T = \left(\corr(\inputVec,\inputVec_1),\dots,\corr(\inputVec,\inputVec_\numDPs) \right) \text{ and}\\
-    & \designOutput^T = \left(\simulator(\inputVec_1),\dots,\simulator(\inputVec_\numDPs) \right).
+    & H^T = (\basisFuncs(\inputVec_1),\dots,\basisFuncs(\inputVec_\numDPs)),\nonumber \\
+    & \mathbf{t(\inputVec)}^T = \left(\corr(\inputVec,\inputVec_1),\dots,\corr(\inputVec,\inputVec_\numDPs) \right) \text{ and} \nonumber\\
+    & \designOutput^T = \left(\simulator(\inputVec_1),\dots,\simulator(\inputVec_\numDPs) \right). \nonumber
 \end{align}
 The posterior mean in eq.\eqref{eq:post1-mean} and posterior correlation in eq.\eqref{eq:post1-cov} are updated from $\basisFuncs$ and $\corr(\inputVec,\inputVec')$ respectively using the derivations outlined in \citet{Krzanowski1988}.
 Now what remains is to remove the conditioning on the unknown parameters $\mathbf{\basisCoeffs}$ and $\var$. The result from integrating out $\basisCoeffs$ gives
@@ -311,7 +311,7 @@ Note that both eq.\eqref{eqn:kdim_mean}-\eqref{eqn:kdim_var} are in $\matRank'$-
     \overset{\numOutputs \times 1}{E\left[\mathbf{\emulator}^*(\inputVec) \right] \strut}&= \overset{\numOutputs \times \matRank'}{\RSingVecs_{1:\matRank'}\strut} \ \overset{\matRank' \times 1}{E\left[\mathbf{\emulator}(\inputVec)\right] \strut},\label{eqn:qdim_mean}\\
     \underset{\numOutputs \times \numOutputs}{\text{Var}\left[\mathbf{\emulator}^*(\inputVec) \right]\strut} &= \underset{\numOutputs \times \matRank'}{\RSingVecs_{1:\matRank'}\strut} \ \underset{\matRank' \times \matRank'}{\text{Var}\left[\mathbf{\emulator}(\inputVec)\right]\strut} \ \underset{\matRank' \times \numOutputs}{\RSingVecs_{1:\matRank'}^T\strut} + \underset{\numOutputs \times (\matRank-\matRank')}{\RSingVecs_{-1:\matRank'}\strut} \ \underset{(\matRank-\matRank')\times(\matRank-\matRank')}{\singValMat_{-1:\matRank'}\strut} \ \underset{(\matRank-\matRank') \times \numOutputs}{\RSingVecs_{-1:\matRank'}^T\strut}, \label{eqn:qdim_var}
 \end{align}
-where $\mathbf{\emulator}^*(\inputVec)$ is the emulator representing the full $\numOutputs$-dimensional output.\\\\
+where $\mathbf{\emulator}^*(\inputVec)$ is the emulator representing the full $\numOutputs$-dimensional output. By inverting the scaling and centring of $E\left[\mathbf{\emulator}^*(\inputVec) \right]$ and Var$\left[\mathbf{\emulator}^*(\inputVec) \right]$, one obtains the emulator mean and uncertainty in the original output space.\\\\
 Eq.\eqref{eqn:qdim_mean} shows how the mean estimate in the full $\numOutputs$-dimensional output is represented in the much smaller $\matRank'$ dimensions as the discarded singular vectors ($\matRank-\matRank'$ of them) are modelled as noise with zero-mean. Eq.\eqref{eqn:qdim_var} shows how the variability from these discarded singular vectors (term 2) can be combined with the uncertainty arising from the emulators representing singular vectors $1,\dots,\matRank'$ (term 1).\\\\
 Emulation using singular vectors provides several advantages over emulating all outputs individually:
 \begin{enumerate}
@@ -377,7 +377,7 @@ where the variance term on right-hand side (middle) is a $\numOutputs \times \nu
 History matching is performed in iterations (commonly called waves). The process starts with the whole input space designated as NROY (not ruled out yet) space. A design is then sampled from this space, suitable emulators are built and using an implausibility measure, some input configurations are ruled out thereby defining a new NROY space. This process then repeats until either NROY is the empty set or no more space can be ruled out due to prescribed errors and discrepancies.\\\\
 %{\it Brief discussion about how history matching algorithms have changed.}\\\\
 \citet{Craig1996,Craig1997} were the first to establish a detailed algorithm for history matching. They address the need for elicitation of both model discrepancy and observation error, alongside any prior means or covariances for $\outputVec$. From there, \citet{Vernon2010,Vernon2014,Andrianakis2015} (and many others since) have used a consistent algorithm though modified slightly from the original by doing ensembles of model runs instead of individual runs.\\\\
-The following algorithm is consistent with the recently defined procedures. It details the history matching process which will be used throughout this report:
+The following algorithm is consistent with the recently defined procedures. It details the tradidional history matching process:
 \begin{enumerate}
     \item \label{section:hm-setup} Identify target outputs $\obsqD$, model discrepancy $\modelDiscqD$ and observation error $\obsErrorqD$ using elicitation from model experts/engineers. Choose ranges for each input variable. Construct space filling design $\design_1$. Set wave number $j=1$ and wave 0 NROY space $\NROYspace_0 = \paramSpace$.
 
@@ -398,65 +398,92 @@ For higher $\numOutputs$, this requires the specification of a $\numOutputs \tim
 In the case of correlated errors however, this requires the specification of the full $\numOutputs \times \numOutputs$ matrix for both observation error and model discrepancy which leads to obvious elicitation difficulties.
 \subsection{History matching using singular vectors}
 \label{hm-singVec}
-In the previous section, the form of the emulator to represent the full output is presented in eqs.\eqref{eqn:qdim_mean}-\eqref{eqn:qdim_var}. In this section, history matching using these singular vectors is detailed.\\\\
+Replace step 2 of history matching algorithm with the following sub-steps:
+\begin{enumerate}
+    \item[a] Take the design output $\outputMat$ ($\numDPs \times \numOutputs$) from the design $\design_j$, centre (to 0) and scale (to variance 1) and apply the singular value decomposition.
+
+    \item[b] Map the design output $\outputMat$ onto new basis: $\outputMat' = \outputMat \RSingVecs$.
+
+    \item[c] Select first $\matRank'$ columns of $\outputMat'$ according to eq.\eqref{eqn:var_expl}.
+    
+    \item[d] Construct $\matRank'$ emulators $\mathbf{\emulator^*}(\inputVec)$, where the $i$th emulator is trained by the inputs $\designInput$ and the outputs being the $i$th column of $\outputMat'$. These emulators take the form of eqs.\eqref{eqn:kdim_mean} \& \eqref{eqn:qdim_var}.
+    
+    \item[e] Use eqs.\eqref{eqn:qdim_mean} \& \eqref{eqn:qdim_var} to represent the full $\numOutputs$-dimensional output. Finally, reverse the scaling and centring.
+\end{enumerate}
+%In the previous section, the form of the emulator to represent the full output is presented in eqs.\eqref{eqn:qdim_mean}-\eqref{eqn:qdim_var}. In this section, history matching using these singular vectors is detailed.\\\\
 For a point in input space to be deemed non-implausible, it needs to satisfy $\impl(\inputVec) < \thresh$, where $\thresh$ represents the threshold. \citet{Vernon2010,Andrianakis2015,Salter2019} all use a threshold of $\thresh^2 = \chi_{\numOutputs,0.995}^2$, which is the $99.5$th percentile of the chi-squared with $\numOutputs$ degrees of freedom.\\\\
 Upon construction of the emulator $\mathbf{\emulator}^*(\inputVec)$, history matching can be conducted. One may be tempted to history match in the $\matRank' \ (<< \matRank \leq \numOutputs$) dimensional subspace (to lower the implausibility threshold) however \citet{Salter2019} show how one could unintentionally rule out parts of $\numOutputs$-dimensional space consistent with $\obsqD$ when history matching this way.\\\\
-The history matching process starts with the construction of an emulator $\mathbf{\emulator}^*(.)$ and a specification of an observation $\obsqD$, model discrepancy $\modelDiscqD$ and observation error $\obsErrorqD$. The first wave is carried out by applying eq.\eqref{eqn:impl} across the input space and applying the threshold $\thresh$ thus defining the following space \[\NROYspace_1 = \{\inputVec : \impl_1^2(\inputVec) < \thresh \},\] where $\impl_i^2$ represents eq.\eqref{eqn:impl} applied to the emulator from wave $i$.\\\\
-This leaves a subspace $\NROYspace_1$ of the original which is non-implausible given the data, observation and pre-prescribed errors. This space is then sampled, an emulator built and implausibility applied to define \[\NROYspace_2 = \{\inputVec: \inputVec \in \NROYspace_1, \ \impl_2^2(\inputVec) < \thresh \},\] leading to the generalisation \[\NROYspace_i = \{\inputVec: \inputVec \in \NROYspace_1,\dots,\NROYspace_{i-1}, \ \impl_i^2(\inputVec) < \thresh \}.\] History matching continues in these waves until either all space is ruled out (in which case the process restarts with a larger $\obsErrorqD$ or $\modelDiscqD$), or if the uncertainty from the emulation is much smaller than the pre-prescribed errors (signifying that the non-implausible space is almost as small as it could get).
+%The history matching process starts with the construction of an emulator $\mathbf{\emulator}^*(.)$ and a specification of an observation $\obsqD$, model discrepancy $\modelDiscqD$ and observation error $\obsErrorqD$.
+The first wave is carried out by applying eq.\eqref{eqn:impl} across the input space and applying the threshold $\thresh$ thus defining the following space \[\NROYspace_1 = \{\inputVec : \impl_1^2(\inputVec) < \thresh \},\] where $\impl_i^2$ represents eq.\eqref{eqn:impl} applied to the emulator from wave $i$.\\\\
+This leaves a subspace $\NROYspace_1$ of the original which is non-implausible given the data, observation and pre-prescribed errors. This space is then sampled, emulators built and implausibility applied to define \[\NROYspace_2 = \{\inputVec: \inputVec \in \NROYspace_1, \ \impl_2^2(\inputVec) < \thresh \},\] leading to the generalisation \[\NROYspace_i = \{\inputVec: \inputVec \in \NROYspace_1,\dots,\NROYspace_{i-1}, \ \impl_i^2(\inputVec) < \thresh \}.\] History matching continues in these waves until either all space is ruled out (in which case the process restarts with a larger $\obsErrorqD$ or $\modelDiscqD$), or if the uncertainty from the emulation is much smaller than the pre-prescribed errors (signifying that the non-implausible space is almost as small as it could get).
 \section{Problem}
-Have real-world data and want to find parameter values which give suitable match to this data when evaluated by model. The real-world data can be broken down into characteristics (GIVE EXAMPLES AND PERHAPS A MOCK SPIKE CURVE TO DEMONSTRATE). The problem is therefore that we have a simulator $\outputVec = \mathbf{\simulator}(\inputVec)$, where $\outputVec = \{\outputVec_{class}, \outputVec_{char}\}$ contains the classification of whether a spike is induced at $\inputVec$ (either 0,1) and what characteristics the spike has if it is induced respectively.\\\\
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=\linewidth]{spike_characteristics.png}
+    \caption{A curve describing an action potential from \citet{Saghafi2024}. This example is characterised in 5 ways: (1): action potential threshold, (2): action potential peak; (3): action potential trough; (4): action potential width and (5): action potential minimum before pulse.}
+    \label{fig:spike_char}
+\end{figure}
+Have real-world data and want to find parameter values which give suitable match to this data when evaluated by model. The real-world data can be broken down into characteristics (see figure \ref{fig:spike_char}). The problem is therefore that we have a simulator $\outputVec = \mathbf{\simulator}(\inputVec)$, where $\outputVec = \{\outputVec_{class}, \outputVec_{char}\}$ contains the classification of whether a spike is induced at $\inputVec$ (either 0,1) and what characteristics the spike has if it is induced respectively. \\\\
 The problem is to find suitable parameter values which when evaluated by $\mathbf{\simulator}$ give characteristics close to the real-world data.
 \section{Framework to solve problem}
-The problems in this process are two-fold: one is the areas of input space that result in a spike, and the second is the characteristics of that spike conditional on if it occurs.\\\\
-In this report, these two problems are treated separately.
-\begin{enumerate}
-    \item classification problem: sample across parameter space and construct Gaussian process classifier (see section \ref{section:GPC}). At a given point in parameter space, a probability is given of a spike being induced. There are likely to be many points close to the boundary of 0.5, therefore further samples are taken whose probabilities are close to this value. This has the effect of pushing these probabilities towards 1 and 0 enabling a more reliable prediction.
-
-    \item characteristics problem: 
-\end{enumerate}
+The problems in this process are two-fold: one is the areas of input space that result in a spike, and the second is the characteristics of that spike conditional on if it occurs. In this report, these problems are treated separately; first a Gaussian process classifier is constructed to divide the parameter space into two regions (spike (1) and not spike (0)), and second, within the spike space, the characteristics of that spike is emulated using Gaussian process emulators.
+\subsection{Classification problem}
+\label{method-class}
+A Latin hypercube design \citep{lhs} is used to sample across parameter space. The output of this design is either a 1 (spike) or 0 (no spike). A Gaussian process classifier (see section \ref{section:GPC}) is constructed using this training data with the domain over the parameter space. Therefore, at a given point in this parameter space, a probability is given of a spike being induced.\\\\
+The initial design is uniform, however in practise it is likely that different regions of parameter space require a higher concentration of points to clearly establish the boundary between spiking and not spiking regions. Because of this, there are likely to be many points close to the boundary of 0.5 (probability of spiking), therefore further samples are taken whose probabilities are close to this value. This has the effect of pushing the probabilities across the parameter space towards 1 and 0 enabling a more reliable prediction.\\\\
+Several iterations of this can be done, more clearly establishing the boundary between spiking and not spiking. In practise, a check at the proportion of points close to the boundary was taken and stopping criteria was initiated when the improvement after each new iteration was small. 
+\subsection{Characteristic problem}
+The result from using the classifier is a region of parameter space where the probability of spiking is 0.5. A more conservative approach (to perhaps avoid misclassifying) can be used by choosing a probability lower than 0.5 or a more restrict approach by using a higher probability.\\\\
+In the space that is remaining (denoted $\NROYspace_0$), the characteristics of the simulator output are emulated and history matching can be undertaken to rule out regions of parameter space deemed implausible given the model runs and target outputs.\\\\
+Wave 1 is undertaken by sampling across the whole parameter space such that the probability of spiking is greater than 0.5. This is done using the methodologies established in section \ref{hm-singVec}. There are a number of characteristics that can be emulated (see figure \ref{fig:spike_char}) which therefore changes the number of outputs $\numOutputs$ and the implausibility threshold $\thresh$. The result of this history matching wave reduces the space to $\NROYspace_1$.\\\\
+The next wave begins with sampling in $\NROYspace_1$, constructing emulators whose domain is in this region and once again ruling out space using the implausibility measure. This in turn gives $\NROYspace_2$. This process continues until the variance of the emulators is small compared to the pre-prescribed observation error and model discrepancy.
 \section{Example 1}
 \subsection{Setup}
-Hodgkin-Huxley model compressed into 3 inputs: $g_{Na}, g_K, injCurrent$ with ranges $[50,300], [0,40], [0,20]$ respectively. There are 5 outputs: {\it maxV, minV, width, minVbp, threshold}. One model run at a random input value is used to generate the observation to history match to: i.e. $\outputVec^* = \simulator(\inputVec^*)$. For this example:\[\inputVec^* = (g_{Na}^*,g_K^*,injCurrent^*) = (163.62, 19.855, 3.0570)\] and \[\outputVec^* = (maxV^*, minV^*, width^*, minVbp^*, threshold^*)\]\[ = (43.329, -54.460, 1.2300, -54.460, -47.412).\]
+Hodgkin-Huxley model compressed into 3 inputs: $g_{Na}, g_K, injCurrent$ with ranges $[50,300], [0,40], [0,20]$ respectively. There are 6 outputs: {\it class, maxV, minV, width, minVbp, threshold}. One model run at a random input value is used to generate the observation to history match to: i.e. $\outputVec^* = \simulator(\inputVec^*)$. For this example:\[\inputVec^* = (g_{Na}^*,g_K^*,injCurrent^*) = (163.62, 19.855, 3.0570)\] and \[\outputVec^* = (class^*, maxV^*, minV^*, width^*, minVbp^*, threshold^*)\]\[ = (1, 43.329, -54.460, 1.2300, -54.460, -47.412).\]
 \subsection{Classification GP results}
-\begin{figure}
+\begin{figure}[t]
     \centering
     \includegraphics[width=\linewidth]{Example1/class1.png}
-    \caption{Iteration 1 of the Gaussian process classifier. The diagonal shows the probabilities across the marginal of each variable. The lower triangle shows the probabilities across each of the two-dimensional windows.}
+    \caption{Iteration 1 of the Gaussian process classifier. The diagonal shows the probabilities across the marginal of each variable. The lower triangle shows the probabilities across each of the two-dimensional windows. The different colours represent probabilities which are sorted into bins listed to the right of the plot.}
     \label{fig:ex1-class1}
 \end{figure}
 
-\begin{figure}
+\begin{figure}[t]
     \centering
     \includegraphics[width=\linewidth]{Example1/class5.png}
-    \caption{Iteration 5 of the Gaussian process classifier. The diagonal shows the probabilities across the marginal of each variable. The lower triangle shows the probabilities across each of the two-dimensional windows.}
+    \caption{Iteration 5 of the Gaussian process classifier. The diagonal shows the probabilities across the marginal of each variable. The lower triangle shows the probabilities across each of the two-dimensional windows. The different colours represent probabilities which are sorted into bins listed to the right of the plot.}
     \label{fig:ex1-class5}
 \end{figure}
-
+Applying the methodology in section \ref{method-class} for one iteration yields figure \ref{fig:ex1-class1}. Looking at the diagonal plot, one sees the proportion of parameter space which lies in the different probability bins. Much of the probabilities in the parameter space are between 0.2 and 0.75. Sampling from this space again starts to separate out these regions and move points away from the boundary.\\\\
+By iteration 5, far more of these probabilities have moved away from the 0.5 boundary and pushed towards 0 and 1. Looking at the off-diagonal plots show how these different probabilities show the boundaries between firing and not firing.\\\\ After this point, the improvement in each new iteration was negligible therefore this was chosen to be the final iteration. Therefore the space remaining is defined as \[\NROYspace_0 = \{\inputVec:P(\inputVec=fire)>0.5 \}.\] This space is plotted in figure \ref{fig:ex1-char0}.
 \subsection{Characteristic GP results}
-\begin{figure}
+\begin{figure}[t]
     \centering
     \includegraphics[width=\linewidth]{Example1/char0.png}
-    \caption{NROY space after using classifier.}
+    \caption{NROY space after using Gaussian process classifier. The red dot is $\inputVec^*$. All inputs have been scaled to $[-1,1]^p$.}
     \label{fig:ex1-char0}
 \end{figure}
 \begin{figure}
     \centering
     \includegraphics[width=\linewidth]{Example1/char1.png}
-    \caption{NROY space after 1 wave of history matching.}
+    \caption{NROY space after 1 wave of history matching. The red dot is $\inputVec^*$. All inputs have been scaled to $[-1,1]^p$.}
     \label{fig:ex1-char1}
 \end{figure}
-\begin{figure}
+\begin{figure}[t]
     \centering
     \includegraphics[width=\linewidth]{Example1/char2.png}
-    \caption{NROY space after 2 waves of history matching.}
+    \caption{NROY space after 2 waves of history matching. The red dot is $\inputVec^*$. All inputs have been scaled to $[-1,1]^p$.}
     \label{fig:ex1-char2}
 \end{figure}
-\begin{figure}
+\begin{figure}[t]
     \centering
     \includegraphics[width=\linewidth]{Example1/char15_zoomed_orig.png}
-    \caption{NROY space after 15 waves of history matching, zoomed in.}
+    \caption{NROY space after 15 waves of history matching, zoomed in. The red dot is $\inputVec^*$.}
     \label{fig:ex1-char15_zoomed}
 \end{figure}
+Now remains the history matching procedure where the target output is $\outputVec^*$. In practise, an observation error variance and model discrepancy variance would also be specified but as this example serves as a demonstration of the methods, instead these have been set to $10^{-6}$ for each output.\\\\
+History matching will be done over the space defined by $\NROYspace_0$. This space is sampled, evaluated by the emulator and thus able to define a new set $\NROYspace_1$. After one wave of history matching, figure \ref{fig:ex1-char1} shows the space remaining and figure \ref{fig:ex1-char2} shows the space contained in $\NROYspace_2$.\\\\
+This continued until wave 15, in which approximately 1/5 millionth of the original parameter space remains. The zoomed in plot of $\NROYspace_15$ is shown in figure \ref{fig:ex1-char15_zoomed} with the input values scaled back to their true scales. Using the points contained in this plot, the emulator can be evaluated and a prediction made as to what $\outputVec^*$ is. WHAT WAS THIS GUESS?
 \newpage
 \bibliographystyle{agsm}
 \bibliography{references.bib}
