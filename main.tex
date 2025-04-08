@@ -1,6 +1,7 @@
 \documentclass{article}
 \usepackage{graphicx} % Required for inserting images
-\usepackage{natbib,amsmath,amssymb}
+\usepackage{natbib,amsmath,amssymb,subfigure,geometry,subcaption,caption}
+\geometry{margin=1in}
 
 \title{Post doc report}
 \author{Michael Dunne}
@@ -91,10 +92,12 @@
 \newcommand{\yhat}{\hat{y}}
 \newcommand{\SDqD}{\mathbf{\sigma}}
 \newcommand{\basisCoeffsqD}{B}
+\newcommand{\latent}{\mathbf{f}_L}
 
 \begin{document}
 
 \maketitle
+\nocite{python}
 
 \section{Principal component analysis}
 \label{section:dim.red}
@@ -288,6 +291,33 @@ Alternatively, one can adopt a Bayesian approach by specifying priors on each of
 where $g(\hyp)$ is the prior over all hyperparameters and $\likelihood(\designOutput|\designInput,\hyp)$ is represented in eq.\eqref{eq:ARD-MLE}. This method is incorporated in the Python package {\it mogp} \citep{mogptk}.
 \subsection{Gaussian process classification}
 \label{section:GPC}
+\begin{figure}
+    \centering
+    \begin{subfigure}{}
+        \includegraphics[width=0.45\linewidth]{GPC-explainer/latent-func.png}
+        \caption{Hi}
+        \label{fig:latent-func}
+    \end{subfigure}
+    
+    \begin{subfigure}{}
+        \includegraphics[width=0.45\linewidth]{GPC-explainer/posterior.png}
+        \caption{Hi}
+        \label{fig:posterior}
+    \end{subfigure}
+    \caption{Caption}
+    \label{fig:GPC-explainer}
+\end{figure}
+A Gaussian process classifier implements a GP to make a probabilistic classification, in which test predictions take the form of class probabilities \citep{scikit-learn}. This is done using a two-step process: the first is placing a GP prior over a latent function $\latent(\inputVec)$, the second being to squish this through a logistic link function $\lambda(\inputVec)$ to obtain a probabilistic classification. In figure \ref{fig:GPC-explainer}, for a given latent function $f_*$, this is squashed through the logistic function \[\lambda(z) = \frac{1}{1+\exp(-z)}, \] i.e. figure \ref{fig:posterior} is the plot of $\lambda(f_*)$.\\\\
+Calculating distribution of latent variable:
+\begin{equation}
+    p(f_*|\designInput,\designOutput,\inputVec_*) = \int p(f_*|\designInput,\inputVec_*,\latent) p(\latent|\designInput,\designOutput) d \latent,
+\end{equation}
+where $p(\latent,\designInput,\designOutput$ is posterior for latent function. Can make a probabilistic prediction using the distribution over $f_*$:
+\begin{equation}
+    \hat{\pi}_* \triangleq p(y_* = +1|\designInput,\designOutput,\inputVec_*) = \int \lambda(f_*) p(f_*|\designInput,\designOutput,\inputVec_*) d f_*,
+\end{equation}
+where $\lambda(z) = 1/(1+\exp(-z))$ is the sigmoid function.\\\\
+CAN APPROXIMATE $p(\latent|\designInput,\designOutput)$ USING GAUSSIAN APPROXIMATION WHICH IS EASIER TO DEAL WITH.
 \section{Multivariate emulation using PCA}
 The emulation approach used in this section is the use of singular vectors obtained through principal component analysis to model the output \citep{Wilkinson_2010,Salter2019,Salter2022,Higdon2008,Sexton2012}. After an ensemble of $\numDPs$ model runs, the outputs can be represented in a $\numDPs \times \numOutputs$ matrix $\outputMat$, where $\numOutputs$ is the number of outputs. In line with the procedure behind singular value decomposition (SVD) (see section \ref{PCA}), $\outputMat$ can be first centred and scaled (mean $0$, variance $1$), then decomposed in the following way:
 \begin{equation}
