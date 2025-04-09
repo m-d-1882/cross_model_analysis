@@ -1,0 +1,6 @@
+var.names = c('gCRH', 'gca', 'gkca', 'kc', 'gkir', 'gk')
+p = length(var.names)
+range_L = c(0  ,1,0,0.05,1.2,0)
+range_U = c(0.4,3,4,2   ,1.4,16)
+output.names = c('ahp','spike_width')
+q = length(output.names)
